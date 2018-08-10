@@ -1,0 +1,793 @@
+---
+title: "Exercises 1"
+author: "Avani Sharma"
+date: "8 August 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Probability practice
+
+#### Part A.
+
+RC = Random Clicker  
+TC = Truthful Clicker
+
+Two possible answers to the survey: Yes(Y) and No(N)
+
++P(Y/RC) = 0.5 => Probability of Yes given that person is random clicker
++P(N/RC) = 0.5 => analogous
++P(RC) = 0.3 => Probability of being random clicker
++P(TC) = 0.7 => analogous
++P(Y) = 0.65 => Probability of Yes
++P(N) = 0.35 => analogous
+
++P(Y) = P(Y/RC) x P(RC) + P(Y/TC) x P(TC)
++0.65     = 0.5 x 0.3 + P(Y/TC) x 0.7
+
++P(Y/TC) = 0.5/0.7 = 0.7142857
+
+Fraction of people who are truthful clickers and answered yes = 0.7142857 = 71.4%
+
+#### Part B.
+
++Sensitivity is 0.993, i.e if someone has the disease, there is a probability of 0.993 that they will test positive
++Specificity is 0.9999, i.e if someone doesn't have the disease, there is probability of 0.9999 that they will test negative
+
++Incidence of the disease is reasonably rare = 0.0025%
+
++Let's take a sample of population = 1000000
+
++Diseased people = 25
+
+Sensitivity = Tested Positive with disease/Diseased people = 0.993
+Tested Positive with disease = 25*0.993 = 24.825 (Ignore decimal as it will vanish while taking ratio)
+
+Specificity = Tested Negative & didn't have disease/Healthy Individuals = 0.9999
+Tested Negative & didn't have disease = (1000000-25)*0.9999 = 999875.0025
+
+Complete Truth Table:
+
+Predicted|Diseased  | Healthy |
+--|--|--|
+|Diseased (Actual)|24.825 | 0.175 |
+|Healthy  (Actual)| 24.975 | 999975.025|
+
+Someone tests positive, the probability that they have the disease (seeing from table above) = 24.825/(24.825+99.9975) =0.19888
+
+Someone tests negative, the probability that they have the disease (seeing from table above) = 0.007
+
+If we implement the above test we can predict that the person has a disease with 19.88% probability, that is we might give false alarms to many people. The probabiltiy is too low to be implemented on a universal scale. The probabilty to declare correct healthy people and diseased people is high but the probability of diseased person to have positive test for is too low 19.88%. ~80% of times we will mispredict and give  false alarms. 
+
+##Exploratory analysis: green buildings
+
+#### Austin Real-Estate Case Study :Data Exploration
+
+
+###### General Correlation plot 
+
+```{r}
+data_1<-read.csv("greenbuildings.csv")
+library(ggplot2)
+library(ggcorrplot)
+library(ggthemes)
+
+data_1<-data_1[complete.cases(data_1),]
+#install.packages("devtools")
+#devtools::install_github("kassambara/ggcorrplot")
+
+# Correlation matrix
+corr <- round(cor(data_1), 1)
+
+# Plot
+ggcorrplot(corr, hc.order = TRUE, 
+           type = "lower", 
+           lab = TRUE, 
+           lab_size = 3, 
+           method="circle", 
+           colors = c("tomato2", "white", "springgreen3"), 
+           title="Correlogram of Green Buildings", 
+           ggtheme=theme_bw)+theme(axis.text.x = element_text(angle=45, vjust=0.9))+theme(axis.text.y = element_text(angle=0, vjust=0.9))
+```
+
+We start with a basic correlation plot, the plot here has all correlation values but colored with bubbles according to the positive or negative correlation. The sizes are proportional to the magnitude of the correlation.
+
+Observations:
+
+1. Good correlation (>0.5) between seemingly similar variables is expected (like hd_total07 & total_dd_07), (age & renovated), (size & stories), (total_dd_07 & electricity costs), (green-rating & energy costs) etc.
+
+2. The rest are very weakly correlated and hence there seems not much of a dependent relationship between the variables
+
+##### Comparison of distribution of greeen and non-green buildings
+
+```{r}
+g <- ggplot(data_1, aes(x=as.factor(green_rating), y=leasing_rate))
+g + geom_boxplot(aes(fill=factor(green_rating))) + 
+  theme(axis.text.x = element_text(angle=0, vjust=0.6)) + 
+  labs( 
+       subtitle="Leaisng Rate v/s Green Rating",
+       caption="Source: Green Buildings",
+       x="Green Rating",
+       y="Leasing rate")
+```
+
+Observations: (0: Non-green & 1: Green)
+
+1. A lot of the non green building have very low leasing rate (<50%), there are more number of outliers in case of non green buildings as can be seen from points below 50% in box plot.
+
+2. The 50th percentile of green building lies at about 90%. The leasing rate of of green buildings above 50th percentile is between 90 to close to 100%. The non-green have comparatively low 50th percentile leasing rate.
+
+3. The proportion of green and non green buildings is low as each cluster had only one green building.
+
+##### Renovated Buildings
+
+There are almost equal number of renovated and non-renovated buildings as can be seen from density plots. Renovated buildings are slightly lower in numbers though.
+
+```{r}
+library(ggplot2)
+theme_set(theme_classic())
+
+# Plot
+g <- ggplot(data_1, aes(renovated))
+g + geom_density(aes(fill=factor(renovated)), alpha=0.8) + 
+  labs(subtitle="Buildings grouped by Renovation",
+       caption="Source: Green Building",
+       x="Renovated (0,1)",
+       fill="Renovated")
+```
+##### Leaisng Rate v/s Rent
+
+```{r warning=FALSE}
+theme_set(theme_bw())  # pre-set the bw theme.
+g <- ggplot(data_1, aes(leasing_rate, Rent)) + geom_point()+
+  labs(subtitle="Buildings: Leasing Rate v/s Rent")+facet_grid('green_rating')+ylim(0,150)
+
+g + geom_jitter(aes(col=as.factor(green_rating), alpha=0.0000000001))
+
+```
+Observations:
+
+1. We see high Leasing Rate have generally competitive prices concentrated between ~ 15$ to 50$. But only few of the green buildings go beyond 50$.
+
+2. Most of the green buildings are concentrated towards high leasinging rate while non-green buildings are relatively scattered.
+
+
+
+##### Rent Distribution
+
+```{r}
+g <- ggplot(data_1, aes(Rent))
+g + geom_histogram(col='#FF7034', fill='#FF7034',alpha=0.1) + 
+  theme(axis.text.x = element_text(angle=0, vjust=0.6)) + 
+  labs( 
+       subtitle="Rent Distribution",
+       caption="Source: Green Buildings",
+       x="Rent",
+       y="Frequency")
+```
+
+Most of the buildings have rate between 0-50$
+
+
+
+
+
+##### Cluster Rent v/s Size
+
+```{r}
+
+theme_set(theme_bw())  # pre-set the bw theme.
+g <- ggplot(data_1, aes(cluster_rent, size)) + 
+  labs(subtitle="Cluster Rent v/s Size")
+
+g + geom_point(aes(col=as.factor(green_rating),alpha=0))
+
+```
+
+Most of the cluster rents are concentrated bewteen 10-40$ per square feet.
+
+##### Employment Growth v/s cluster
+
+```{r}
+g <- ggplot(data_1, aes(empl_gr))
+g + geom_histogram(col="#40E0D0", fill="#40E0D0", alpha=0.1) + 
+  theme(axis.text.x = element_text(angle=0, vjust=0.6)) + 
+  labs( 
+       subtitle="Employment Growth Distribution",
+       caption="Source: Green Buildings",
+       x="Employment Growth",
+       y="Frequency")
+```
+
+Employment growth is mostly static at around 2-5%
+
+#### Numerical Analysis
+
+I followed the path where I took the financial information of the data-frame and then analysed the same. I have a feeling since excel is a very powerfull tool there can be a lot that can be done, gross generalisations with excel is perhaps not that good idea.
+
+```{r}
+library(data.table)
+data_1<-data.table(data_1)
+data_fin<-data_1[,c("CS_PropertyID", "cluster", "size", "Rent", "leasing_rate", "green_rating", "net", "Precipitation", "Gas_Costs", "Electricity_Costs")]
+head(data_fin)
+```
+
+data_f has now all variables that can impact our buying & maintenance cost of the green building.
+
+
+The following are my counter-arguements for the path that the statistician took:
+
+1. He just removed the buildings that had less than 10% leasing rate, during exploration of the data I found that less than 10% leasing rate was more prominent in case of non-green rated buildings as was seen from Plot 2 too. For green rated buildings most of the data points actually had a pretty good leasing rate in between 75-98%. I feel to understand the green rating buildings, distribution of data points is an important part of the analysis.
+
+2. He took the median rate of the entire non-green & green data set, there are two reasons I feel that is flawed:
+
+a) The cluster in which the building is a big deciding factor in analysing the rate. there are few clusters in which I feel there is a lot of variation between green and non-green buildings. The fact that he discared the cluster specific behaviour is something that I don't agree with. Each cluster describes a geography that can be a potential good/bad investment for the investor.
+
+b) Also, the per square foot area that he took, the fact is all the buildings are not completely occupied. The leasing rate defines the percentage of occupation which again varies as per the cluster even in case of green buildings. So, the effective square per foot rent the realtor would get will be product of leasing rent and rent per square foot. The fact that both green and green buildings vary hugely in this respect (seen from plot 2) reinstates the fact that it will be a prominent part of our analysis.
+
+c) Also instead of a gross generalisation I would like to analyse each cluster separately instead of the entire dataset together.
+
+
+3. Now there is a variable net which is an indicator as to whether the rent is quoted on a ``net contract'' basis. Tenants with net-rental contracts pay their own utility costs, which are otherwise included in the quoted rental price. I would intend to include the same in my analysis.
+
+
+The analysis that I would suggest:
+
+a) I would first calculate the effective rent per square foot per building, the effective rent would be product of leasing rent and rent per square foot.
+
+b) The effective rent above is calculated for both green and non green buildings. I use median again because it helps in avoiding outliers. For the median I used all the non-green buildings separately, the reason being that the cluster rent also includes the green building. Also, it is essential to compare the green with the non-green building median and not the overall measures of central tendency (mean/median/mode). In addition to above I also included the electricity and water costs for only 'net' flagged buildings.
+
+c) Now for each cluster I calculated the above and aligned the same with each cluster's green building. The difference between the green and non-green rent is something that I would analyse in order to understand whether having the green building is overall profitable and in how many days we can recuperate the investment.
+
+The analysis below supports the arguements I made above. Here I took median adjusted rent (leasing_rate*rent) of separate clusters among non-green building only as we need to comapre green v/s non-green. Median is a better representation than mean as it handles outliers.
+
+```{r}
+library(data.table)
+data_1<-data.table(data_1)
+data_1$Rent_actual=data_1$Rent*data_1$leasing_rate/100
+data_1a<-data_1[green_rating==0,.(cluster_rent_Actual=median(Rent_actual)), by=.(cluster)]
+data_1_merge<-merge(x = data_1, y = data_1a, by = "cluster", all.x = TRUE)
+data_1_merge<-data_1_merge[complete.cases(data_1),]
+data_1_merge$Difference_in_Rents=data_1_merge$Rent_actual-data_1_merge$cluster_rent_Actual
+data_1_merge<-data_1_merge[complete.cases(data_1_merge),]
+head(data_1_merge$Difference_in_Rents)
+```
+
+Here Difference_in_Rents would actually represent the possible difference between green & non-green buildings. Will filter the differences for green ones only.
+
+```{r}
+data_1_green<-data_1_merge[green_rating==1,]
+head(data_1_green)
+
+```
+
+d) The interesting thing is that in few clusters having a green building is actually being very profitable as sometimes the difference is actually coming more than stated by statistician (~2) which means green building is generating better square foot rent. It would be interesting to see the non-green building here and then decide whether we wish to go ahead with this cluster area.
+
+Checking high positive value differences:
+
+```{r}
+data_1_green<-data_1_merge[green_rating==1,]
+data_1_green_filter<-data_1_green[,c("CS_PropertyID", "cluster","Difference_in_Rents")][order(-Difference_in_Rents)]
+data_1_green_filter[1:10]
+```
+
+Exploring suitable clusters:
+
+```{r}
+#tried
+# data_1[cluster==565,] #only old buildings
+# data_1[cluster==566,] #only old buildings
+# data_1[cluster==561,] #only one building for comparison
+# data_1[cluster==1143,] #mix of buildings
+# data_1[cluster==555,] #only two buildings for comparison
+# data_1[cluster==1141,] #only two buildings for comparison
+# data_1[cluster==564,] #only two buildings for comparison
+# data_1[cluster==557,] #Good option Age 20~30
+
+#Final
+data_1[cluster==558,] #Good option Age 7~41 & employment growth 2.38 
+
+```
+
+Various such options are present and we can select by looking at variables like age employemnt growth, etc. 
+
+
+**Best Option observed Cluster 558, Difference in profit $31.74 per square foot per year**
+
+e) When we get the differences these can then be analysed to see how much profits the green building would generate in comparison to non-green building. I infact chose a cluster that has a major difference between green and non-green building rent and can generate the maximum profit. I also checked whether the cluster generally had non-green buildins as well.
+
+Few additions that would be interesting are;
+
+1. Checking the employment growth in these areas as well. I would like to select the building which has a good employment growth rate along with good profits as this would add to our profit books too.
+
+2. I checked further that how many new green buildings (age is less than 5-6) have less than 70% leasing rate and these are very less.
+
+3. Further, electricity costs & water costs can be further decreased if we take a cluster that has less precipitation, hot and cold days as these are same for a cluster.
+
+I intended to find a specific cluster taking in consideration all of the above factors. This would perhaps recuperate the money more promptly in less number of years.
+
+
+### Calculation with option selected
+
+Area of Building = 250000 sq feet
+Total expenditure = $105,000,000
+
+Already considered leasing rate in our analysis so leasing rate not required
+Recuperate costs = 5000000/(31.74*250000) = 0.63 years (This seems too quick but I believe in Math :) )
+
+Post 7-8 months the company would only make profits as per my analysis
+
+
+## Bootstrapping
+
+Summary of Analysis:
+
+|Portfolio|SPY  |TLT|LQD|EEM|VNQ|Loss(5% level)
+|--|--|--|--|--|--|--|
+|Balanced  | 20% |20%|20%|20%|20%|$6140
+|Safe Split|7.5%|0%|85%|2.5%|5%|$3335
+|High Risk|10%|30%|10%|20%|30%|$6674
+
+Suggested to invest in LQD, SPY & VNQ as can be understood from the table above. Below is the underlying analysis:
+
+
+```{r}
+library(mosaic)
+library(quantmod)
+library(foreach)
+# Import ETFs
+# gets to yahoo financial services to get ETF data
+# US domestic equities (SPY: the S&P 500 stock index)
+# US Treasury bonds (TLT)
+# Investment-grade corporate bonds (LQD)
+# Emerging-market equities (EEM)
+# Real estate (VNQ)
+
+
+
+
+myETFs = c("SPY", "TLT", "LQD","EEM","VNQ")
+getSymbols(myETFs)
+
+# Adjust for open, high & low, splits and dividends
+SPYa = adjustOHLC(SPY)     
+TLTa = adjustOHLC(TLT)
+LQDa = adjustOHLC(LQD)
+EEMa = adjustOHLC(EEM)
+VNQa = adjustOHLC(VNQ)
+```
+
+
+```{r}
+#Look at close to close changes
+par(mfrow=c(3,2))
+plot(ClCl(SPYa), col="#40E0D0", lwd=0.00001)
+plot(ClCl(TLTa), col="#40E0D0", lwd=0.00001)
+plot(ClCl(LQDa), col='#FF7034', lwd=0.00001)
+plot(ClCl(EEMa), col='#FF7034', lwd=0.00001)
+plot(ClCl(VNQa), col="#40E0D0", lwd=0.00001)
+
+standard_deviation=c(sd(SPYa), sd(TLTa), sd(LQDa), sd(EEMa), sd(VNQa))
+standard_deviation
+
+```
+
+From the standard deviations I see, there is high variation in US Treasury bonds, medium variation in SPY: the S&P 500 stock index, Real Estate while Investment-grade corporate bonds & Emerging-market equities are more stable
+
+As per my understanding high risk has high returns, low risk has low returns and medium risks have medium returns. The behaviour is dependent on the variation in price ranges. The following are my observations from the analysis done below:
+
+1. US Treasury bonds are very high risk, the high risk portfolio had a major component of these bonds and as such the losses are high as well.
+
+2. Safe portfolio involved row risk choices of medium variation SPY, Real Estate as well as Investment-grade corporate bonds & Emerging-market equities. The losses could be minimised to a great extent by this portfolio.
+
+3. All stocks are sort of correlated. The financial data has a tendency of being heavy tailed.
+
+
+```{r}
+
+# Combine close to close changes for each of the five ETFs
+
+all_returns = cbind(ClCl(SPYa),ClCl(TLTa),ClCl(LQDa),ClCl(EEMa),ClCl(VNQa))
+head(all_returns) 
+
+# all are daily returns rate
+```
+
+
+```{r}
+corr <- round(cor(na.omit(all_returns)), 1)
+
+# Plot
+ggcorrplot(corr, hc.order = TRUE, 
+           type = "lower", 
+           lab = TRUE, 
+           lab_size = 3, 
+           method="circle", 
+           colors = c("tomato2", "white", "springgreen3"), 
+           title="Correlogram of ETF Portfolio", 
+           ggtheme=theme_bw)+theme(axis.text.x = element_text(angle=45, vjust=0.9))+theme(axis.text.y = element_text(angle=0, vjust=0.9))
+```
+
+The above correlation matrix shows ~0.5 magnitude (positive/negative) correlation between TLT & LQD (+), SPY & TLT (-), SPY & EEM (+) and VNQ & SPY (+). All of these are correlated amongst each other. 
+
+### the even split: 20% 
+
+```{r}
+all_returns = as.matrix(na.omit(all_returns))
+
+# The sample correlation matrix
+cor(all_returns)
+
+
+# Sample a random return from the empirical joint distribution
+# This simulates a random day
+return.today = resample(all_returns, 1, orig.ids=FALSE)
+
+# Assumes an equal allocation to each asset
+
+# even split: 20% of assets 
+
+total_wealth = 100000
+
+weights = c(0.2, 0.2, 0.2, 0.2, 0.2) 
+holdings = weights * total_wealth
+n_days = 20          #T
+wealthtracker = rep(0, n_days) # Set up a placeholder to track total wealth, take a closet and put all for loop result in it
+
+# Now simulate many different possible scenarios  
+set.seed(10)
+initial_wealth = 100000
+sim1 = foreach(i=1:6000, .combine='rbind') %do% {
+  total_wealth = initial_wealth
+  weights = c(0.2, 0.2, 0.2, 0.2, 0.2)
+  holdings = weights * total_wealth
+  n_days = 20
+  wealthtracker = rep(0, n_days)
+  for(today in 1:n_days) {
+    return.today = resample(all_returns, 1, orig.ids=FALSE)
+    holdings = weights * total_wealth
+    holdings = holdings + holdings*return.today
+    total_wealth = sum(holdings)
+    wealthtracker[today] = total_wealth
+  }
+  wealthtracker
+}
+
+head(sim1)  
+hist(sim1[,n_days], 25, col="#40E0D0")
+
+# Profit/loss
+mean(sim1[,n_days])
+hist(sim1[,n_days]- initial_wealth, breaks=30, col="#40E0D0")
+
+# Calculate 5% value at risk
+quantile(sim1[,n_days], 0.05)
+
+#histogram simulated data
+
+Loss = initial_wealth-quantile(sim1[,n_days], 0.05)
+Loss
+
+# Can get a loss of $6140 5% of the times 
+```
+
+**Can get a loss of $6134 5% of the times**
+
+### Safer Split
+
+```{r}
+
+###### Safer Split
+
+set.seed(10)
+initial_wealth = 100000
+
+weights = c(0.075, 0, 0.85, 0.025, 0.05) 
+holdings = weights * total_wealth
+n_days = 20          #T
+wealthtracker = rep(0, n_days) # Set up a placeholder to track total wealth, take a closet and put all for loop result in it
+
+# simulated 2 week trajectory
+for(today in 1:n_days) {
+  return.today = resample(all_returns, 1, orig.ids=FALSE)
+  holdings = holdings + holdings*return.today
+  total_wealth = sum(holdings)
+  wealthtracker[today] = total_wealth
+}
+total_wealth
+plot(wealthtracker, type='l', col="#40E0D0")
+title("2 week return")
+
+
+# Now simulate many different possible scenarios  
+initial_wealth = 100000
+sim1 = foreach(i=1:6000, .combine='rbind') %do% {
+  total_wealth = initial_wealth
+  weights = c(0.075, 0, 0.80, 0.025, 0.10)
+  holdings = weights * total_wealth
+  n_days = 20
+  wealthtracker = rep(0, n_days)
+  for(today in 1:n_days) {
+    return.today = resample(all_returns, 1, orig.ids=FALSE)
+    holdings = weights * total_wealth
+    holdings = holdings + holdings*return.today
+    total_wealth = sum(holdings)
+    wealthtracker[today] = total_wealth
+  }
+  wealthtracker
+}
+
+head(sim1)  
+hist(sim1[,n_days], 60, col="#40E0D0")
+
+# Profit/loss
+mean(sim1[,n_days])
+hist(sim1[,n_days]- initial_wealth, breaks=30, col="#40E0D0")
+
+# Calculate 5% value at risk
+quantile(sim1[,n_days], 0.05)
+
+#histogram simulated data
+
+Loss = initial_wealth-quantile(sim1[,n_days], 0.05)
+Loss
+
+```
+
+**Can get a loss of $3339 5% of the times**
+
+### High Risk Split
+
+```{r}
+
+###### High risk Split
+
+set.seed(10)
+initial_wealth = 100000
+
+weights = c(0.1, 0.3, 0.1, 0.20, 0.3) 
+holdings = weights * total_wealth
+n_days = 20          #T
+wealthtracker = rep(0, n_days) # Set up a placeholder to track total wealth, take a closet and put all for loop result in it
+
+# simulated 2 week trajectory
+for(today in 1:n_days) {
+  return.today = resample(all_returns, 1, orig.ids=FALSE)
+  holdings = holdings + holdings*return.today
+  total_wealth = sum(holdings)
+  wealthtracker[today] = total_wealth
+}
+total_wealth
+plot(wealthtracker, type='l', col="#40E0D0")
+title("2 week return")
+
+# Now simulate many different possible scenarios  
+initial_wealth = 100000
+sim1 = foreach(i=1:6000, .combine='rbind') %do% {
+  total_wealth = initial_wealth
+  weights = c(0.1, 0.3, 0.1, 0.20, 0.3)
+  holdings = weights * total_wealth
+  n_days = 20
+  wealthtracker = rep(0, n_days)
+  for(today in 1:n_days) {
+    return.today = resample(all_returns, 1, orig.ids=FALSE)
+    holdings = weights * total_wealth
+    holdings = holdings + holdings*return.today
+    total_wealth = sum(holdings)
+    wealthtracker[today] = total_wealth
+  }
+  wealthtracker
+}
+
+head(sim1)  
+hist(sim1[,n_days], 60, col="#40E0D0")
+
+# Profit/loss
+mean(sim1[,n_days])
+hist(sim1[,n_days]- initial_wealth, breaks=30, col="#40E0D0")
+
+# Calculate 5% value at risk
+quantile(sim1[,n_days], 0.05)
+
+#histogram simulated data
+
+Loss = initial_wealth-quantile(sim1[,n_days], 0.05)
+Loss
+```
+
+**Can get a loss of $6582 5% of the times**
+
+### Market segmentation
+
+NutrientH20 can segregate it's online audinece in the following clusters. The analysis for the same has been done in the codes that follow:
+
+| Clusters | Features |
+|--|--|
+|Cluster 8  |health_nutrition, eco, outdoors,  personal_fitness
+|Cluster 7|online_gaming, college_uni, sports_playing
+|Cluster 6|current-events, tv-film, shopping, business, art, dating,    small_business
+|Cluster 5| home_and-garden, spam, adult
+|Cluster 4|  photo_sharing, uncategorized, music, cooking, beauty, fashion 
+|Cluster 3| sports_fandom, food, family, crafts, religion, parenting, school
+|Cluster 2| travel, politics, news, computers, automotive
+
+In the above clusters, cluster 8 belongs to sportsmen & fitness conscious customers which can be targeted accordingly. Cluster 7 is college going youth actively involved in online gaming and sports. Cluster 6 seems like a more mature professional audience. Cluster 5 includes the misc category. Cluster 4 seems to be covering the female followers. Cluster 3 is a more mature family audience & Cluster 2 appear to include online bloggers, active twitterati, tech savvy & politics acquainted audience.
+
+Approach:
+
+1. Plotted a scree plot to check best k
+2. Selected one with few clusters as per business requirements.
+3. Checked which feature fell into one of clusters more often, assigned the feature too the same cluster.
+
+```{r}
+library(ggplot2)
+library(LICORS)  # for kmeans++
+library(foreach)
+library(mosaic)
+
+socialmkt = read.csv('social_marketing.csv', header=TRUE)
+socialmkt = na.omit(socialmkt)
+
+# Correlation matrix
+corr <- round(cor(socialmkt[,-1]), 1)
+
+# Plot
+ggcorrplot(corr, hc.order = TRUE, 
+           type = "lower", 
+           lab_size = 3, 
+           method="circle", 
+           colors = c("tomato2", "white", "springgreen3"), 
+           title="Correlogram of Social Market", 
+           ggtheme=theme_bw)+theme(axis.text.x = element_text(angle=45, vjust=0.9))+theme(axis.text.y = element_text(angle=0, vjust=0.9))
+
+```
+From initial exploration, we saw some strong correlations between few features: health_nutrition, outdoors & personal fitness seemed to be related; online gaming, college university & sports playing seemed related too, others include: family, food, sports_fandom, religion, parenting and uncategorized; computers, travel, politics and photo sharing, chatter& shopping.
+
+These variables had a possibility of being clustered which was later confirmed in final exercise. 
+```{r}
+qplot(beauty, business,data=socialmkt, color=factor(chatter)) + 
+  labs(subtitle="Beauty v/s Business")
+
+qplot(crafts,travel, data=socialmkt, color=factor(chatter))+
+  labs(subtitle="Crafts v/s Travel")
+
+```
+
+Both seem to be inversely correlated.
+
+
+```{r}
+# Center and scale the data
+X = socialmkt[,-1]
+X = scale(X, center=TRUE, scale=TRUE)
+
+# Extract the centers and scales from the rescaled data (which are named attributes)
+mu = attr(X,"scaled:center")
+sigma = attr(X,"scaled:scale")
+
+####  Optimal Amount Of Clusters (k):
+ 
+# Scree Plot For Determining Optimal k Clusters.
+ 
+total_wsumsq <- rep(0, 30) #Initialize
+ 
+for (k in 1:30){
+  kmeans <- kmeans(X, centers = k, nstart = 25)
+  
+  # Scree Plot use total within cluster sum of squares
+  
+  total_wsumsq[k] <- kmeans$tot.withinss 
+}
+ 
+## Scree Plot In Base R:
+ 
+plot(x = 1:30, y = total_wsumsq , xlab = "Number Of Clusters (k)", 
+     ylab = "Total Within Sum Of Squares", col="#40E0D0") +
+  lines(x = 1:30, y = total_wsumsq)
+```
+
+From the scree plot above, we see that the cluster distances would be minimised at about 30 centres. But marketing campaigns generally cannot cater to so scattered target audience (the solution above was overfitting) due to excessive campaign cost. Tried 6-10 centres in K means clustering beyond this point.
+
+```{r}
+# Run k-means with 8 clusters and 25 starts
+set.seed(20)
+clust1 = kmeans(X, 8, nstart=25)
+
+library(data.table)
+figure_cluster_dependence<-aggregate(X,by=list(clust1$cluster),FUN=mean)
+
+check=apply(figure_cluster_dependence,2,function(x) which(x==max(x)))
+check=data.table(colnames(socialmkt)[1:length(colnames(socialmkt))], check[1:length(check)])
+
+
+########### Getting features in each cluster
+
+Cluster_1=subset(check,check$V2==1)
+Cluster_2=subset(check,check$V2==2)
+Cluster_3=subset(check,check$V2==3)
+Cluster_4=subset(check,check$V2==4)
+Cluster_5=subset(check,check$V2==5)
+Cluster_6=subset(check,check$V2==6)
+Cluster_7=subset(check,check$V2==7)
+Cluster_8=subset(check,check$V2==8)
+
+########## Checking mean of each feature in cluster
+
+# clust1$center[1,]*sigma + mu
+# clust1$center[2,]*sigma + mu
+# clust1$center[3,]*sigma + mu
+
+library(ggplot2)
+library(fpc)
+qplot(beauty, business,data=socialmkt, color=factor(clust1$cluster))
+qplot(crafts,travel, data=socialmkt, color=factor(clust1$cluster))
+plotcluster(X, clust1$cluster, col=as.factor(clust1$cluster)) 
+
+Cluster_1
+Cluster_2
+Cluster_3
+Cluster_4
+Cluster_5
+Cluster_6
+Cluster_7
+Cluster_8
+
+#Can use the commands below to check clusters for the different followers 
+
+# which(clust1$cluster == 1)
+# which(clust1$cluster == 2)
+# which(clust1$cluster == 3)
+```
+
+Also tried hierarchical clustering :
+
+```{r}
+# Center/scale the data
+socialmkt_scaled <- scale(socialmkt[,-1], center=TRUE, scale=TRUE) 
+
+# Distance matrix using the dist function (average distange between points)
+socialmkt_distance_matrix = dist(socialmkt_scaled, method='euclidean')
+
+
+#average linkage function
+hier_socialmkt = hclust(socialmkt_distance_matrix, method='average')
+
+
+#plot(hier_socialmkt, cex=0.8)   (Very complex dendogram)
+
+#the y axis predicts the proximity between the points
+
+
+# Cut the tree into 8 clusters
+
+cluster1 = cutree(hier_socialmkt, k=8)
+
+# Using single ("max"/"complete") linkage instead
+hier_socialmkt2 = hclust(socialmkt_distance_matrix, method='complete')
+
+# Plot the dendrogram
+#plot(hier_socialmkt2, cex=0.8)     (too complex)
+cluster2 = cutree(hier_socialmkt2, k=5)
+summary(factor(cluster2))
+
+
+# Using single ("min"/"single") linkage instead
+hier_socialmkt3 = hclust(socialmkt_distance_matrix, method='single')
+
+# Plot the dendrogram 
+# plot(hier_socialmkt3, cex=0.8)    (too complex)
+cluster3 = cutree(hier_socialmkt3, k=5)
+summary(factor(cluster3))
+
+# Examine the cluster members
+
+# which(cluster3 == 1)
+# which(cluster3 == 2)
+# which(cluster3 == 3)
+
+
+```
+
