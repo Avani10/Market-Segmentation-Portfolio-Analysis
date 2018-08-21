@@ -2,7 +2,7 @@
 title: "Exercises 1"
 author: "Avani Sharma"
 date: "8 August 2018"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -18,30 +18,30 @@ TC = Truthful Clicker
 
 Two possible answers to the survey: Yes(Y) and No(N)
 
-+P(Y/RC) = 0.5 => Probability of Yes given that person is random clicker
-+P(N/RC) = 0.5 => analogous
-+P(RC) = 0.3 => Probability of being random clicker
-+P(TC) = 0.7 => analogous
-+P(Y) = 0.65 => Probability of Yes
-+P(N) = 0.35 => analogous
+* P(Y/RC) = 0.5 => Probability of Yes given that person is random clicker
+* P(N/RC) = 0.5 => analogous
+* P(RC) = 0.3 => Probability of being random clicker
+* P(TC) = 0.7 => analogous
+* P(Y) = 0.65 => Probability of Yes
+* P(N) = 0.35 => analogous
 
-+P(Y) = P(Y/RC) x P(RC) + P(Y/TC) x P(TC)
-+0.65     = 0.5 x 0.3 + P(Y/TC) x 0.7
+* P(Y) = P(Y/RC) x P(RC) + P(Y/TC) x P(TC)
+* 0.65     = 0.5 x 0.3 + P(Y/TC) x 0.7
 
-+P(Y/TC) = 0.5/0.7 = 0.7142857
+* P(Y/TC) = 0.5/0.7 = 0.7142857
 
 Fraction of people who are truthful clickers and answered yes = 0.7142857 = 71.4%
 
 #### Part B.
 
-+Sensitivity is 0.993, i.e if someone has the disease, there is a probability of 0.993 that they will test positive
-+Specificity is 0.9999, i.e if someone doesn't have the disease, there is probability of 0.9999 that they will test negative
+* Sensitivity is 0.993, i.e if someone has the disease, there is a probability of 0.993 that they will test positive
+* Specificity is 0.9999, i.e if someone doesn't have the disease, there is probability of 0.9999 that they will test negative
 
-+Incidence of the disease is reasonably rare = 0.0025%
+* Incidence of the disease is reasonably rare = 0.0025%
 
-+Let's take a sample of population = 1000000
+* Let's take a sample of population = 1000000
 
-+Diseased people = 25
+* Diseased people = 25
 
 Sensitivity = Tested Positive with disease/Diseased people = 0.993
 Tested Positive with disease = 25*0.993 = 24.825 (Ignore decimal as it will vanish while taking ratio)
@@ -70,7 +70,7 @@ If we implement the above test we can predict that the person has a disease with
 ###### General Correlation plot 
 
 ```{r}
-data_1<-read.csv("greenbuildings.csv")
+data_1<-read.csv("data/greenbuildings.csv")
 library(ggplot2)
 library(ggcorrplot)
 library(ggthemes)
@@ -628,7 +628,7 @@ library(LICORS)  # for kmeans++
 library(foreach)
 library(mosaic)
 
-socialmkt = read.csv('social_marketing.csv', header=TRUE)
+socialmkt = read.csv('data/social_marketing.csv', header=TRUE)
 socialmkt = na.omit(socialmkt)
 
 # Correlation matrix
